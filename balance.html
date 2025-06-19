@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IF3 Token Balance Checker</title>
+</head>
+<body>
+  <h2>Check IF3 Token Balance</h2>
+  <button id="checkBalance">Check My Balance</button>
+  <p id="output"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <script>
+    const contractAddress = "0x6E13162401D45caB07A0c444A07f477ebd4d30e2";
+
+    const erc20Abi = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function decimals() view returns (uint8)"
+    ];
+
+    document.getElementById("checkBalance").onclick = async () => {
+      if (!window.ethereum) {
+        alert("MetaMask needed");
+        return;
+      }
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        const contract = new ethers.Contract(contractAddress, erc20Abi, provider);
+        const rawBalance = await contract.balanceOf(userAddress);
+        const decimals = await contract.decimals();
+        const balance = Number(rawBalance) / Number(BigInt(10) ** BigInt(decimals));
+
+
+        document.getElementById("output").innerText =
+          `Address: ${userAddress}\nBalance: ${balance} IF3`;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("output").innerText =
+          `Error: ${error.message}`;
+      }
+    };
+  </script>
+</body>
+</html>
